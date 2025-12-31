@@ -2,7 +2,18 @@
 
 Build n8n workflows from plain English using Claude Code.
 
-> **Quick Start:** Open this folder in Claude Code and say: **"Set up n8n skills for me"**
+---
+
+## Quick Start
+
+**Paste this in Claude Code:**
+```
+https://github.com/SorinaW/Claude-Skills-Collection/tree/n8n-workflows
+
+Follow the setup instructions in this README
+```
+
+That's it. Claude will read this README and guide you through setup, asking for your n8n URL and API key.
 
 ---
 
