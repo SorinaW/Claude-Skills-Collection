@@ -1,34 +1,41 @@
 # Claude Skills Collection
 
-A collection of custom skills for [Claude Code](https://claude.com/claude-code).
+Custom skills for [Claude Code](https://claude.com/claude-code).
 
-Skills are reusable expertise that Claude can invoke automatically. Unlike slash commands (you type `/command`), skills are model-invoked - Claude decides when to use them based on context.
+---
+
+## How to Install
+
+1. Click a skill branch below
+2. Copy the branch URL
+3. Paste it in Claude Code and say **"set this up"**
+
+Claude will read the README and guide you through installation.
+
+---
 
 ## Available Skills
 
 | Skill | Branch | Description |
 |-------|--------|-------------|
 | **n8n Workflows** | [`n8n-workflows`](../../tree/n8n-workflows) | Build n8n automations from natural language. Design, create, debug, and deploy workflows via API. |
-| **Anti AI Slop** | [`sorina-anti-ai-slop`](../../tree/sorina-anti-ai-slop) | Rewrite content in authentic voice - direct, funny, opinionated. No corporate buzzwords or AI-generated fluff. |
+| **Anti AI Slop** | [`sorina-anti-ai-slop`](../../tree/sorina-anti-ai-slop) | Rewrite content in authentic voice - direct, funny, opinionated. No corporate buzzwords. |
 
-## How to Install a Skill
+---
 
-1. Switch to the skill's branch
-2. Follow the README instructions in that branch
-3. Copy skill files to `~/.claude/my-skills/<skill-name>/`
+## What Are Skills?
 
-Or let Claude do it - open the branch in Claude Code and say "set this up".
-
-## Skill Structure
+Skills are reusable expertise that Claude invokes automatically. Unlike slash commands (you type `/command`), skills are model-invoked - Claude decides when to use them based on context.
 
 Each skill branch contains:
 ```
 skill/
 ├── SKILL.md        # Main skill file (required)
 ├── reference.md    # Extended docs (optional)
-├── patterns.md     # Patterns/examples (optional)
 └── examples.md     # Ready-to-use examples (optional)
 ```
+
+---
 
 ## Creating Your Own Skills
 
@@ -41,17 +48,12 @@ description: When to use this skill (Claude reads this to decide)
 ---
 
 # Skill content here
-Instructions, reference material, examples...
 ```
 
 Best practices:
 - Keep SKILL.md under 500 lines
-- Put detailed docs in separate files (loaded on demand)
+- Put detailed docs in separate files
 - Description is critical - Claude uses it to decide when to invoke
-
-## Contributing
-
-Feel free to suggest skills or improvements via issues/PRs.
 
 ---
 
