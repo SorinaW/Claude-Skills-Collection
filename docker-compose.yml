@@ -1,0 +1,70 @@
+# Local Development - Persistent n8n instance with auto-setup
+# Usage: docker-compose up -d
+# Access UI at: http://localhost:5678
+#
+# KNOWN CREDENTIALS (for Claude/automation):
+#   Email:    admin@localhost.dev
+#   Password: LocalDev123!
+#   API Key:  See ./.n8n-api-key after first start
+#
+# Commands:
+#   docker-compose up -d        # Start (auto-creates account on first run)
+#   docker-compose down         # Stop (keeps data)
+#   docker-compose down -v      # Stop and DELETE all data
+#   docker-compose logs -f      # View logs
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-local
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - DB_TYPE=sqlite
+      - DB_SQLITE_DATABASE=/home/node/.n8n/database.sqlite
+      - N8N_PUBLIC_API_DISABLED=false
+      - N8N_USER_MANAGEMENT_JWT_SECRET=local-dev-jwt-secret-do-not-use-in-production
+      - N8N_EDITOR_BASE_URL=http://localhost:5678
+      - N8N_METRICS=false
+      - GENERIC_TIMEZONE=UTC
+      - TZ=UTC
+    volumes:
+      - n8n-data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5678/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+  # Init container - sets up admin account and API key on first run
+  n8n-init:
+    image: node:20-alpine
+    container_name: n8n-init
+    depends_on:
+      n8n:
+        condition: service_healthy
+    volumes:
+      - ./scripts/init-n8n.js:/init-n8n.js:ro
+      - ./:/output:rw
+    working_dir: /output
+    environment:
+      - N8N_HOST=n8n
+      - N8N_PORT=5678
+      - API_KEY_OUTPUT=/output/.n8n-api-key
+    command: ["node", "/init-n8n.js"]
+    restart: "no"
+
+volumes:
+  n8n-data:
+    name: n8n-local-data
+
+networks:
+  default:
+    name: n8n-local-network
