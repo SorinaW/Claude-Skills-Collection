@@ -244,7 +244,7 @@ Use 3-5 max.
 
 1. Shorter is almost always better
 2. Don't parrot or repeat
-3. Have a point - opinion, lesson, observation, or something funny/entertaining
+3. Have a point - opinion, lesson, observation, use case, user perspective, or something funny/entertaining
 4. Be specific - real numbers, real examples
 5. Sound human - if you wouldn't say it out loud, don't write it
 6. Humor helps - dry and observational
