@@ -1,6 +1,6 @@
 # Anthropic Official Skills Collection
 
-Curated collection of **6 core skills** from Anthropic's official Claude skills repository. These are the most universally useful skills for document handling and extending Claude's capabilities.
+Complete collection of **all 16 skills** from Anthropic's official Claude skills repository.
 
 ---
 
@@ -20,300 +20,218 @@ xcopy /E /I anthropic-skills\skills "C:\Users\YOUR_USER\.claude\my-skills\anthro
 cp -r anthropic-skills/skills ~/.claude/my-skills/anthropic-skills
 ```
 
-### 3. Install dependencies (see below for each skill)
+### 3. Install dependencies (see below)
 
 ---
 
-## Skills Overview
+## All 16 Skills
 
-| Skill | Category | Dependencies | Status |
-|-------|----------|--------------|--------|
-| [pdf](#pdf-skill) | Document | Python: pypdf, pdfplumber, reportlab | Tested |
-| [docx](#docx-skill) | Document | Node: docx | Tested |
-| [xlsx](#xlsx-skill) | Document | Python: openpyxl, pandas | Tested |
-| [pptx](#pptx-skill) | Document | Python: python-pptx | Tested |
-| [mcp-builder](#mcp-builder-skill) | Builder | None (guidance) | Ready |
-| [skill-creator](#skill-creator-skill) | Builder | None (guidance) | Ready |
+### Document Skills (4)
+| Skill | What It Does | Dependencies |
+|-------|--------------|--------------|
+| [pdf](./skills/pdf/) | Extract, create, merge PDFs, handle forms | Python: pypdf, pdfplumber, reportlab |
+| [docx](./skills/docx/) | Word documents with tracked changes | Node: docx |
+| [xlsx](./skills/xlsx/) | Excel with formulas, formatting | Python: openpyxl, pandas |
+| [pptx](./skills/pptx/) | PowerPoint presentations | Python: python-pptx |
+
+### Builder Skills (2)
+| Skill | What It Does | Dependencies |
+|-------|--------------|--------------|
+| [mcp-builder](./skills/mcp-builder/) | Create custom MCP servers | Guidance only |
+| [skill-creator](./skills/skill-creator/) | Build Claude skills | Guidance only |
+
+### Creative Skills (3)
+| Skill | What It Does | Dependencies |
+|-------|--------------|--------------|
+| [algorithmic-art](./skills/algorithmic-art/) | Generative art with p5.js | Node: p5 |
+| [canvas-design](./skills/canvas-design/) | Visual art in PNG/PDF | Python: pillow, cairo |
+| [slack-gif-creator](./skills/slack-gif-creator/) | Optimized animated GIFs | Python: pillow, gifsicle |
+
+### Development Skills (3)
+| Skill | What It Does | Dependencies |
+|-------|--------------|--------------|
+| [frontend-design](./skills/frontend-design/) | UI/UX development guidance | Guidance only |
+| [webapp-testing](./skills/webapp-testing/) | Playwright browser testing | Python: playwright |
+| [web-artifacts-builder](./skills/web-artifacts-builder/) | React/Tailwind/shadcn components | Node: react, tailwind |
+
+### Business Skills (4)
+| Skill | What It Does | Dependencies |
+|-------|--------------|--------------|
+| [brand-guidelines](./skills/brand-guidelines/) | Apply brand assets consistently | Guidance only |
+| [internal-comms](./skills/internal-comms/) | Status reports, newsletters | Guidance only |
+| [doc-coauthoring](./skills/doc-coauthoring/) | Collaborative editing guidance | Guidance only |
+| [theme-factory](./skills/theme-factory/) | Professional theming | Guidance only |
 
 ---
 
 ## Installation & Testing
 
-### PDF Skill
+### Document Skills
 
-**Install dependencies:**
+#### PDF Skill
 ```bash
 pip install pypdf pdfplumber reportlab
 ```
-
-**Test it works:**
 ```python
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-
 c = canvas.Canvas('test.pdf', pagesize=letter)
-c.drawString(100, 700, 'PDF Skill Test - SUCCESS!')
+c.drawString(100, 700, 'PDF Test - SUCCESS!')
 c.save()
-print('Created: test.pdf')
 ```
 
-**What it does:**
-- Extract text and tables from PDFs (pdfplumber)
-- Create new PDFs (reportlab)
-- Merge, split, rotate PDFs (pypdf)
-- Handle PDF forms
-
-**Key files:**
-- `SKILL.md` - Main instructions
-- `forms.md` - PDF form handling
-- `reference.md` - API reference
-- `scripts/` - Helper utilities
-
----
-
-### DOCX Skill
-
-**Install dependencies (in the docx folder):**
+#### DOCX Skill
 ```bash
-cd skills/docx
-npm init -y
-npm install docx
+cd skills/docx && npm init -y && npm install docx
 ```
-
-**Test it works:**
 ```javascript
 const { Document, Packer, Paragraph, TextRun } = require('docx');
 const fs = require('fs');
-
 const doc = new Document({
-  sections: [{
-    children: [
-      new Paragraph({
-        children: [new TextRun({ text: 'DOCX Skill Test - SUCCESS!', bold: true })],
-      }),
-    ],
-  }],
+  sections: [{ children: [new Paragraph({ children: [new TextRun('DOCX Test!')] })] }]
 });
-
-Packer.toBuffer(doc).then(buffer => {
-  fs.writeFileSync('test.docx', buffer);
-  console.log('Created: test.docx');
-});
+Packer.toBuffer(doc).then(b => fs.writeFileSync('test.docx', b));
 ```
 
-**What it does:**
-- Create Word documents from scratch
-- Edit existing documents
-- Track changes and comments
-- Work with OOXML structure
-
-**Key files:**
-- `SKILL.md` - Main instructions
-- `docx-js.md` - JavaScript guide for creating docs
-- `ooxml.md` - OOXML format reference for editing
-
----
-
-### XLSX Skill
-
-**Install dependencies:**
+#### XLSX Skill
 ```bash
 pip install openpyxl pandas
 ```
-
-**Test it works:**
 ```python
 from openpyxl import Workbook
-from openpyxl.styles import Font
-
 wb = Workbook()
-sheet = wb.active
-sheet['A1'] = 'XLSX Skill Test - SUCCESS!'
-sheet['A1'].font = Font(bold=True)
-sheet['A3'] = 'Sales'
-sheet['B3'] = 100
-sheet['A4'] = 'Costs'
-sheet['B4'] = 60
-sheet['A5'] = 'Profit'
-sheet['B5'] = '=B3-B4'  # Formula!
+wb.active['A1'] = 'XLSX Test - SUCCESS!'
+wb.active['B1'] = '=1+1'
 wb.save('test.xlsx')
-print('Created: test.xlsx')
 ```
 
-**What it does:**
-- Create spreadsheets with formulas
-- Format cells and ranges
-- Data analysis with pandas
-- Recalculate formulas (requires LibreOffice)
-
-**Key files:**
-- `SKILL.md` - Main instructions
-- `recalc.py` - Formula recalculation script
-
----
-
-### PPTX Skill
-
-**Install dependencies:**
+#### PPTX Skill
 ```bash
 pip install python-pptx
 ```
-
-**Test it works:**
 ```python
 from pptx import Presentation
 from pptx.util import Inches, Pt
-
 prs = Presentation()
 slide = prs.slides.add_slide(prs.slide_layouts[6])
-
 txBox = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(1))
-tf = txBox.text_frame
-tf.paragraphs[0].text = 'PPTX Skill Test - SUCCESS!'
-tf.paragraphs[0].font.size = Pt(32)
-tf.paragraphs[0].font.bold = True
-
+txBox.text_frame.paragraphs[0].text = 'PPTX Test - SUCCESS!'
 prs.save('test.pptx')
-print('Created: test.pptx')
 ```
-
-**What it does:**
-- Create presentations from scratch
-- Use layouts and templates
-- Add charts and graphics
-- Convert HTML to PowerPoint
-
-**Key files:**
-- `SKILL.md` - Main instructions
-- `html2pptx.md` - HTML to PPTX conversion
-- `scripts/` - Helper scripts
 
 ---
 
-### MCP Builder Skill
+### Creative Skills
 
-**No installation required** - This is a guidance skill.
-
-**What it does:**
-- Guide for creating MCP servers
-- Python (FastMCP) and Node (MCP SDK) patterns
-- Tool definition best practices
-- Testing and evaluation guidance
-
-**When you actually build an MCP server:**
+#### Algorithmic Art Skill
 ```bash
-# Python
-pip install fastmcp
-
-# Node/TypeScript
-npm install @modelcontextprotocol/sdk
+cd skills/algorithmic-art && npm init -y && npm install p5
 ```
+Uses p5.js for generative art. See SKILL.md for patterns.
 
-**Key files:**
-- `SKILL.md` - Main guide
-- `reference/` - Detailed documentation
+#### Canvas Design Skill
+```bash
+pip install pillow pycairo
+```
+Creates visual art in PNG/PDF formats. See SKILL.md for examples.
+
+#### Slack GIF Creator Skill
+```bash
+pip install pillow
+# Optional: install gifsicle for optimization
+```
+Creates optimized animated GIFs.
 
 ---
 
-### Skill Creator Skill
+### Development Skills
 
-**No installation required** - This is a guidance skill.
+#### Frontend Design Skill
+**No installation** - Guidance for UI/UX development.
 
-**What it does:**
-- Guide for creating Claude skills
-- Skill structure and format
-- Best practices
-- Helper scripts included
+#### Webapp Testing Skill
+```bash
+pip install playwright
+playwright install chromium
+```
+```python
+from playwright.sync_api import sync_playwright
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page()
+    page.goto('https://example.com')
+    page.screenshot(path='test.png')
+    browser.close()
+```
 
-**Key files:**
-- `SKILL.md` - Main guide
-- `scripts/init_skill.py` - Initialize new skill
-- `scripts/package_skill.py` - Package for distribution
-- `scripts/quick_validate.py` - Validate skill format
+#### Web Artifacts Builder Skill
+```bash
+cd skills/web-artifacts-builder && npm init -y && npm install react react-dom tailwindcss
+```
+Builds React/Tailwind/shadcn UI components.
+
+---
+
+### Business Skills
+
+All business skills are **guidance only** - no installation required:
+- **brand-guidelines** - Apply brand assets consistently
+- **internal-comms** - Status reports and newsletters
+- **doc-coauthoring** - Collaborative editing patterns
+- **theme-factory** - Professional theming guidance
+
+---
+
+## Install All Dependencies
+
+**All Python packages:**
+```bash
+pip install pypdf pdfplumber reportlab openpyxl pandas python-pptx pillow playwright
+```
+
+**Node packages (run in each skill folder that needs them):**
+```bash
+# docx
+cd skills/docx && npm init -y && npm install docx
+
+# algorithmic-art
+cd skills/algorithmic-art && npm init -y && npm install p5
+
+# web-artifacts-builder
+cd skills/web-artifacts-builder && npm init -y && npm install react react-dom
+```
 
 ---
 
 ## Folder Structure
 
-After installation, your skills folder should look like:
-
 ```
 ~/.claude/my-skills/anthropic-skills/
-├── pdf/
-│   ├── SKILL.md
-│   ├── forms.md
-│   ├── reference.md
-│   └── scripts/
-├── docx/
-│   ├── SKILL.md
-│   ├── docx-js.md
-│   ├── ooxml.md
-│   ├── ooxml/
-│   ├── scripts/
-│   ├── package.json      # After npm install
-│   └── node_modules/     # After npm install
-├── xlsx/
-│   ├── SKILL.md
-│   └── recalc.py
-├── pptx/
-│   ├── SKILL.md
-│   ├── html2pptx.md
-│   ├── ooxml/
-│   └── scripts/
-├── mcp-builder/
-│   ├── SKILL.md
-│   ├── reference/
-│   └── scripts/
-└── skill-creator/
-    ├── SKILL.md
-    ├── references/
-    └── scripts/
-```
-
----
-
-## Dependencies Summary
-
-| Skill | Type | Install Command |
-|-------|------|-----------------|
-| pdf | Python | `pip install pypdf pdfplumber reportlab` |
-| docx | Node | `npm install docx` (in docx folder) |
-| xlsx | Python | `pip install openpyxl pandas` |
-| pptx | Python | `pip install python-pptx` |
-| mcp-builder | None | Guidance only |
-| skill-creator | None | Guidance only |
-
-**Install all Python dependencies at once:**
-```bash
-pip install pypdf pdfplumber reportlab openpyxl pandas python-pptx
+├── pdf/                    # Document
+├── docx/                   # Document
+├── xlsx/                   # Document
+├── pptx/                   # Document
+├── mcp-builder/            # Builder
+├── skill-creator/          # Builder
+├── algorithmic-art/        # Creative
+├── canvas-design/          # Creative
+├── slack-gif-creator/      # Creative
+├── frontend-design/        # Development
+├── webapp-testing/         # Development
+├── web-artifacts-builder/  # Development
+├── brand-guidelines/       # Business
+├── internal-comms/         # Business
+├── doc-coauthoring/        # Business
+└── theme-factory/          # Business
 ```
 
 ---
 
 ## Source
 
-These skills are from Anthropic's official repository:
+All skills from Anthropic's official repository:
 https://github.com/anthropics/skills
 
 ## License
 
-Each skill contains its own `LICENSE.txt` file. See individual skill folders for licensing terms.
-
----
-
-## Not Included
-
-The following Anthropic skills were excluded (niche use cases):
-
-| Skill | Why Excluded |
-|-------|--------------|
-| webapp-testing | Covered by Playwright MCP |
-| frontend-design | Dev niche |
-| web-artifacts-builder | Dev niche |
-| brand-guidelines | Marketing niche |
-| internal-comms | Corporate niche |
-| doc-coauthoring | Collaboration niche |
-| theme-factory | Design niche |
-| algorithmic-art | Creative/fun |
-| canvas-design | Creative/fun |
-| slack-gif-creator | Creative/fun |
+Each skill contains its own `LICENSE.txt` file.
