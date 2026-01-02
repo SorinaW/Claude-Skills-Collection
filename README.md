@@ -2,114 +2,291 @@
 
 Curated collection of **6 core skills** from Anthropic's official Claude skills repository. These are the most universally useful skills for document handling and extending Claude's capabilities.
 
+---
+
+## Quick Start
+
+### 1. Clone this branch
+```bash
+git clone -b anthropic-skills https://github.com/SorinaW/Claude-Skills-Collection.git anthropic-skills
+```
+
+### 2. Copy to your Claude skills folder
+```bash
+# Windows
+xcopy /E /I anthropic-skills\skills "C:\Users\YOUR_USER\.claude\my-skills\anthropic-skills"
+
+# Mac/Linux
+cp -r anthropic-skills/skills ~/.claude/my-skills/anthropic-skills
+```
+
+### 3. Install dependencies (see below for each skill)
+
+---
+
 ## Skills Overview
 
-| Skill | Category | What It Does |
-|-------|----------|--------------|
-| [pdf](./skills/pdf/) | Document | Extract text/tables, create PDFs, merge files, handle forms |
-| [docx](./skills/docx/) | Document | Create/edit Word documents with tracked changes |
-| [xlsx](./skills/xlsx/) | Document | Excel spreadsheets with formulas, formatting, analysis |
-| [pptx](./skills/pptx/) | Document | PowerPoint presentations with layouts, templates, charts |
-| [mcp-builder](./skills/mcp-builder/) | Builder | Create custom MCP servers to extend Claude |
-| [skill-creator](./skills/skill-creator/) | Builder | Interactive skill builder (meta-skill) |
+| Skill | Category | Dependencies | Status |
+|-------|----------|--------------|--------|
+| [pdf](#pdf-skill) | Document | Python: pypdf, pdfplumber, reportlab | Tested |
+| [docx](#docx-skill) | Document | Node: docx | Tested |
+| [xlsx](#xlsx-skill) | Document | Python: openpyxl, pandas | Tested |
+| [pptx](#pptx-skill) | Document | Python: python-pptx | Tested |
+| [mcp-builder](#mcp-builder-skill) | Builder | None (guidance) | Ready |
+| [skill-creator](#skill-creator-skill) | Builder | None (guidance) | Ready |
 
 ---
 
-## Document Skills
+## Installation & Testing
 
-### [pdf](./skills/pdf/)
-**Extract, create, and manipulate PDF files**
+### PDF Skill
 
-- Extract text and tables from PDFs
-- Create new PDF documents
-- Merge multiple PDFs
+**Install dependencies:**
+```bash
+pip install pypdf pdfplumber reportlab
+```
+
+**Test it works:**
+```python
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+c = canvas.Canvas('test.pdf', pagesize=letter)
+c.drawString(100, 700, 'PDF Skill Test - SUCCESS!')
+c.save()
+print('Created: test.pdf')
+```
+
+**What it does:**
+- Extract text and tables from PDFs (pdfplumber)
+- Create new PDFs (reportlab)
+- Merge, split, rotate PDFs (pypdf)
 - Handle PDF forms
-- Scripts: `scripts/` folder with helper utilities
 
-Key files:
-- `SKILL.md` - Main skill instructions
-- `forms.md` - PDF form handling guide
+**Key files:**
+- `SKILL.md` - Main instructions
+- `forms.md` - PDF form handling
 - `reference.md` - API reference
+- `scripts/` - Helper utilities
 
 ---
 
-### [docx](./skills/docx/)
-**Word document creation and editing**
+### DOCX Skill
 
-- Create professional Word documents
+**Install dependencies (in the docx folder):**
+```bash
+cd skills/docx
+npm init -y
+npm install docx
+```
+
+**Test it works:**
+```javascript
+const { Document, Packer, Paragraph, TextRun } = require('docx');
+const fs = require('fs');
+
+const doc = new Document({
+  sections: [{
+    children: [
+      new Paragraph({
+        children: [new TextRun({ text: 'DOCX Skill Test - SUCCESS!', bold: true })],
+      }),
+    ],
+  }],
+});
+
+Packer.toBuffer(doc).then(buffer => {
+  fs.writeFileSync('test.docx', buffer);
+  console.log('Created: test.docx');
+});
+```
+
+**What it does:**
+- Create Word documents from scratch
 - Edit existing documents
 - Track changes and comments
-- Apply formatting and styles
 - Work with OOXML structure
 
-Key files:
-- `SKILL.md` - Main skill instructions
-- `docx-js.md` - JavaScript implementation guide
-- `ooxml.md` - OOXML format reference
-- `ooxml/` - Template files
+**Key files:**
+- `SKILL.md` - Main instructions
+- `docx-js.md` - JavaScript guide for creating docs
+- `ooxml.md` - OOXML format reference for editing
 
 ---
 
-### [xlsx](./skills/xlsx/)
-**Excel spreadsheet handling**
+### XLSX Skill
 
-- Create spreadsheets with data
-- Apply formulas and functions
+**Install dependencies:**
+```bash
+pip install openpyxl pandas
+```
+
+**Test it works:**
+```python
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
+wb = Workbook()
+sheet = wb.active
+sheet['A1'] = 'XLSX Skill Test - SUCCESS!'
+sheet['A1'].font = Font(bold=True)
+sheet['A3'] = 'Sales'
+sheet['B3'] = 100
+sheet['A4'] = 'Costs'
+sheet['B4'] = 60
+sheet['A5'] = 'Profit'
+sheet['B5'] = '=B3-B4'  # Formula!
+wb.save('test.xlsx')
+print('Created: test.xlsx')
+```
+
+**What it does:**
+- Create spreadsheets with formulas
 - Format cells and ranges
-- Data analysis and charts
-- Recalculate formulas programmatically
+- Data analysis with pandas
+- Recalculate formulas (requires LibreOffice)
 
-Key files:
-- `SKILL.md` - Main skill instructions
+**Key files:**
+- `SKILL.md` - Main instructions
 - `recalc.py` - Formula recalculation script
 
 ---
 
-### [pptx](./skills/pptx/)
-**PowerPoint presentation creation**
+### PPTX Skill
 
+**Install dependencies:**
+```bash
+pip install python-pptx
+```
+
+**Test it works:**
+```python
+from pptx import Presentation
+from pptx.util import Inches, Pt
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+txBox = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(1))
+tf = txBox.text_frame
+tf.paragraphs[0].text = 'PPTX Skill Test - SUCCESS!'
+tf.paragraphs[0].font.size = Pt(32)
+tf.paragraphs[0].font.bold = True
+
+prs.save('test.pptx')
+print('Created: test.pptx')
+```
+
+**What it does:**
 - Create presentations from scratch
 - Use layouts and templates
 - Add charts and graphics
-- Apply themes and styling
 - Convert HTML to PowerPoint
 
-Key files:
-- `SKILL.md` - Main skill instructions
-- `html2pptx.md` - HTML to PPTX conversion guide
+**Key files:**
+- `SKILL.md` - Main instructions
+- `html2pptx.md` - HTML to PPTX conversion
 - `scripts/` - Helper scripts
 
 ---
 
-## Builder Skills
+### MCP Builder Skill
 
-### [mcp-builder](./skills/mcp-builder/)
-**Create custom MCP servers**
+**No installation required** - This is a guidance skill.
 
-Extend Claude's capabilities by building your own Model Context Protocol servers. This skill guides you through:
+**What it does:**
+- Guide for creating MCP servers
+- Python (FastMCP) and Node (MCP SDK) patterns
+- Tool definition best practices
+- Testing and evaluation guidance
 
-- MCP server architecture
-- Tool definition patterns
-- Resource handling
-- Best practices for production servers
+**When you actually build an MCP server:**
+```bash
+# Python
+pip install fastmcp
 
-Key files:
-- `SKILL.md` - Main skill instructions
+# Node/TypeScript
+npm install @modelcontextprotocol/sdk
+```
+
+**Key files:**
+- `SKILL.md` - Main guide
+- `reference/` - Detailed documentation
 
 ---
 
-### [skill-creator](./skills/skill-creator/)
-**Build better Claude skills**
+### Skill Creator Skill
 
-A meta-skill that helps you create high-quality custom skills. Learn:
+**No installation required** - This is a guidance skill.
 
+**What it does:**
+- Guide for creating Claude skills
 - Skill structure and format
-- Best practices for instructions
-- Testing and iteration
-- Distribution patterns
+- Best practices
+- Helper scripts included
 
-Key files:
-- `SKILL.md` - Main skill instructions
+**Key files:**
+- `SKILL.md` - Main guide
+- `scripts/init_skill.py` - Initialize new skill
+- `scripts/package_skill.py` - Package for distribution
+- `scripts/quick_validate.py` - Validate skill format
+
+---
+
+## Folder Structure
+
+After installation, your skills folder should look like:
+
+```
+~/.claude/my-skills/anthropic-skills/
+├── pdf/
+│   ├── SKILL.md
+│   ├── forms.md
+│   ├── reference.md
+│   └── scripts/
+├── docx/
+│   ├── SKILL.md
+│   ├── docx-js.md
+│   ├── ooxml.md
+│   ├── ooxml/
+│   ├── scripts/
+│   ├── package.json      # After npm install
+│   └── node_modules/     # After npm install
+├── xlsx/
+│   ├── SKILL.md
+│   └── recalc.py
+├── pptx/
+│   ├── SKILL.md
+│   ├── html2pptx.md
+│   ├── ooxml/
+│   └── scripts/
+├── mcp-builder/
+│   ├── SKILL.md
+│   ├── reference/
+│   └── scripts/
+└── skill-creator/
+    ├── SKILL.md
+    ├── references/
+    └── scripts/
+```
+
+---
+
+## Dependencies Summary
+
+| Skill | Type | Install Command |
+|-------|------|-----------------|
+| pdf | Python | `pip install pypdf pdfplumber reportlab` |
+| docx | Node | `npm install docx` (in docx folder) |
+| xlsx | Python | `pip install openpyxl pandas` |
+| pptx | Python | `pip install python-pptx` |
+| mcp-builder | None | Guidance only |
+| skill-creator | None | Guidance only |
+
+**Install all Python dependencies at once:**
+```bash
+pip install pypdf pdfplumber reportlab openpyxl pandas python-pptx
+```
 
 ---
 
@@ -124,19 +301,19 @@ Each skill contains its own `LICENSE.txt` file. See individual skill folders for
 
 ---
 
-## Not Included (Other Categories)
+## Not Included
 
-The following Anthropic skills were excluded as they serve more niche purposes:
+The following Anthropic skills were excluded (niche use cases):
 
-| Skill | Category | Why Excluded |
-|-------|----------|--------------|
-| webapp-testing | Testing | Covered by Playwright MCP |
-| frontend-design | Dev | Niche use case |
-| web-artifacts-builder | Dev | Niche use case |
-| brand-guidelines | Marketing | Niche use case |
-| internal-comms | Corporate | Niche use case |
-| doc-coauthoring | Collab | Niche use case |
-| theme-factory | Design | Niche use case |
-| algorithmic-art | Creative | Fun/creative only |
-| canvas-design | Creative | Fun/creative only |
-| slack-gif-creator | Creative | Fun/creative only |
+| Skill | Why Excluded |
+|-------|--------------|
+| webapp-testing | Covered by Playwright MCP |
+| frontend-design | Dev niche |
+| web-artifacts-builder | Dev niche |
+| brand-guidelines | Marketing niche |
+| internal-comms | Corporate niche |
+| doc-coauthoring | Collaboration niche |
+| theme-factory | Design niche |
+| algorithmic-art | Creative/fun |
+| canvas-design | Creative/fun |
+| slack-gif-creator | Creative/fun |
