@@ -1,6 +1,13 @@
 # Anthropic Official Skills Collection
 
-Complete collection of **all 16 skills** from Anthropic's official Claude skills repository.
+> **Official Source**: [github.com/anthropics/skills](https://github.com/anthropics/skills)
+
+Complete collection of **all 16 official skills** published by Anthropic for Claude Code and Claude.ai. These are the same skills available in the Anthropic skills marketplace, packaged for easy local installation.
+
+Each skill includes:
+- `SKILL.md` - The skill prompt and instructions
+- `DEPENDENCIES.md` - Required libraries and installation status
+- `LICENSE.txt` - Anthropic's license terms
 
 ---
 
@@ -24,7 +31,7 @@ cp -r anthropic-skills/skills ~/.claude/my-skills/anthropic-skills
 
 ---
 
-## All 16 Skills
+## All 16 Official Skills
 
 ### Document Skills (4)
 | Skill | What It Does | Dependencies |
@@ -43,24 +50,24 @@ cp -r anthropic-skills/skills ~/.claude/my-skills/anthropic-skills
 ### Creative Skills (3)
 | Skill | What It Does | Dependencies |
 |-------|--------------|--------------|
-| [algorithmic-art](./skills/algorithmic-art/) | Generative art with p5.js | Node: p5 |
-| [canvas-design](./skills/canvas-design/) | Visual art in PNG/PDF | Python: pillow, cairo |
-| [slack-gif-creator](./skills/slack-gif-creator/) | Optimized animated GIFs | Python: pillow, gifsicle |
+| [algorithmic-art](./skills/algorithmic-art/) | Generative art with p5.js | Node: p5, canvas |
+| [canvas-design](./skills/canvas-design/) | Visual art in PNG/PDF | Python: pillow |
+| [slack-gif-creator](./skills/slack-gif-creator/) | Optimized animated GIFs | Python: pillow |
 
 ### Development Skills (3)
 | Skill | What It Does | Dependencies |
 |-------|--------------|--------------|
 | [frontend-design](./skills/frontend-design/) | UI/UX development guidance | Guidance only |
 | [webapp-testing](./skills/webapp-testing/) | Playwright browser testing | Python: playwright |
-| [web-artifacts-builder](./skills/web-artifacts-builder/) | React/Tailwind/shadcn components | Node: react, tailwind |
+| [web-artifacts-builder](./skills/web-artifacts-builder/) | React/Tailwind/shadcn artifacts | Bash scripts |
 
 ### Business Skills (4)
 | Skill | What It Does | Dependencies |
 |-------|--------------|--------------|
-| [brand-guidelines](./skills/brand-guidelines/) | Apply brand assets consistently | Guidance only |
-| [internal-comms](./skills/internal-comms/) | Status reports, newsletters | Guidance only |
-| [doc-coauthoring](./skills/doc-coauthoring/) | Collaborative editing guidance | Guidance only |
-| [theme-factory](./skills/theme-factory/) | Professional theming | Guidance only |
+| [brand-guidelines](./skills/brand-guidelines/) | Anthropic brand colors/typography | Guidance only |
+| [internal-comms](./skills/internal-comms/) | Status reports, newsletters, FAQs | Guidance only |
+| [doc-coauthoring](./skills/doc-coauthoring/) | Collaborative document workflow | Guidance only |
+| [theme-factory](./skills/theme-factory/) | 10 professional themes for artifacts | Guidance only |
 
 ---
 
@@ -125,29 +132,29 @@ prs.save('test.pptx')
 
 #### Algorithmic Art Skill
 ```bash
-cd skills/algorithmic-art && npm init -y && npm install p5
+cd skills/algorithmic-art && npm init -y && npm install p5 canvas
 ```
-Uses p5.js for generative art. See SKILL.md for patterns.
+Browser-based skill using p5.js for generative art. Creates HTML + JS files.
 
 #### Canvas Design Skill
 ```bash
-pip install pillow pycairo
+pip install pillow
 ```
-Creates visual art in PNG/PDF formats. See SKILL.md for examples.
+Creates visual designs in PNG format. Includes 40+ TTF fonts.
 
 #### Slack GIF Creator Skill
 ```bash
 pip install pillow
-# Optional: install gifsicle for optimization
+# Optional: choco install gifsicle (Windows) or brew install gifsicle (Mac)
 ```
-Creates optimized animated GIFs.
+Creates optimized animated GIFs for Slack/Discord.
 
 ---
 
 ### Development Skills
 
 #### Frontend Design Skill
-**No installation** - Guidance for UI/UX development.
+**No installation** - Guidance for creating distinctive UI that avoids "AI slop" aesthetics.
 
 #### Webapp Testing Skill
 ```bash
@@ -165,20 +172,17 @@ with sync_playwright() as p:
 ```
 
 #### Web Artifacts Builder Skill
-```bash
-cd skills/web-artifacts-builder && npm init -y && npm install react react-dom tailwindcss
-```
-Builds React/Tailwind/shadcn UI components.
+**Bash scripts** for creating React + TypeScript + Tailwind + shadcn/ui projects that bundle into single HTML artifacts.
 
 ---
 
 ### Business Skills
 
 All business skills are **guidance only** - no installation required:
-- **brand-guidelines** - Apply brand assets consistently
-- **internal-comms** - Status reports and newsletters
-- **doc-coauthoring** - Collaborative editing patterns
-- **theme-factory** - Professional theming guidance
+- **brand-guidelines** - Anthropic brand colors (#141413, #faf9f5, accents) and typography (Poppins, Lora)
+- **internal-comms** - Templates for 3P updates, newsletters, FAQs, status reports
+- **doc-coauthoring** - 3-stage workflow: Context Gathering, Refinement, Reader Testing
+- **theme-factory** - 10 professional themes (Ocean Depths, Sunset Boulevard, Forest Canopy, etc.)
 
 ---
 
@@ -187,18 +191,16 @@ All business skills are **guidance only** - no installation required:
 **All Python packages:**
 ```bash
 pip install pypdf pdfplumber reportlab openpyxl pandas python-pptx pillow playwright
+playwright install chromium
 ```
 
-**Node packages (run in each skill folder that needs them):**
+**Node packages (run in each skill folder):**
 ```bash
 # docx
 cd skills/docx && npm init -y && npm install docx
 
 # algorithmic-art
-cd skills/algorithmic-art && npm init -y && npm install p5
-
-# web-artifacts-builder
-cd skills/web-artifacts-builder && npm init -y && npm install react react-dom
+cd skills/algorithmic-art && npm init -y && npm install p5 canvas
 ```
 
 ---
@@ -207,31 +209,31 @@ cd skills/web-artifacts-builder && npm init -y && npm install react react-dom
 
 ```
 ~/.claude/my-skills/anthropic-skills/
-├── pdf/                    # Document
-├── docx/                   # Document
-├── xlsx/                   # Document
-├── pptx/                   # Document
-├── mcp-builder/            # Builder
-├── skill-creator/          # Builder
-├── algorithmic-art/        # Creative
-├── canvas-design/          # Creative
-├── slack-gif-creator/      # Creative
-├── frontend-design/        # Development
-├── webapp-testing/         # Development
-├── web-artifacts-builder/  # Development
-├── brand-guidelines/       # Business
-├── internal-comms/         # Business
-├── doc-coauthoring/        # Business
-└── theme-factory/          # Business
+├── pdf/                    # Document - PDF processing
+├── docx/                   # Document - Word documents
+├── xlsx/                   # Document - Excel spreadsheets
+├── pptx/                   # Document - PowerPoint
+├── mcp-builder/            # Builder - MCP server creation
+├── skill-creator/          # Builder - Skill development
+├── algorithmic-art/        # Creative - Generative art
+├── canvas-design/          # Creative - Visual design
+├── slack-gif-creator/      # Creative - Animated GIFs
+├── frontend-design/        # Development - UI/UX guidance
+├── webapp-testing/         # Development - Browser testing
+├── web-artifacts-builder/  # Development - React artifacts
+├── brand-guidelines/       # Business - Anthropic branding
+├── internal-comms/         # Business - Internal communications
+├── doc-coauthoring/        # Business - Document collaboration
+└── theme-factory/          # Business - Professional theming
 ```
 
 ---
 
-## Source
+## Official Source
 
-All skills from Anthropic's official repository:
+All 16 skills are from Anthropic's official skills repository:
 https://github.com/anthropics/skills
 
 ## License
 
-Each skill contains its own `LICENSE.txt` file.
+Each skill contains its own `LICENSE.txt` file with Anthropic's license terms.
