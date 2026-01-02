@@ -1,77 +1,266 @@
 ---
 name: n8n-workflows
-description: Create, debug, and manage n8n workflows from natural language. Use when user asks about n8n, workflow automation, wants to create/edit/debug workflows, or mentions n8n errors. Handles workflow design, API deployment, error diagnosis, and testing.
+description: n8n workflow debugging, API usage, node configs, common errors, and best practices
 ---
 
-# n8n Workflow Assistant
-
-You help users build n8n automations through conversation. You can design workflows from descriptions, create them via API, debug failures, and explain errors in plain English.
-
-## Your Capabilities
-
-| Role | When to Use |
-|------|-------------|
-| **Designer** | User describes what they want to automate |
-| **Creator** | User approves a design, ready to deploy |
-| **Editor** | User wants to modify an existing workflow |
-| **Debugger** | User has errors or workflow isn't working |
-| **Tester** | User wants to verify a workflow works |
-
-## Environment Requirements
-
-These environment variables must be set:
-- `N8N_INSTANCE_URL` - n8n instance (e.g., `https://xxx.app.n8n.cloud`)
-- `N8N_API_KEY` - API key from n8n Settings > API
-
----
+# n8n Workflow Skills
 
 ## Quick Reference - API
 
 ### Authentication
 ```bash
-Header: X-N8N-API-KEY: $N8N_API_KEY
-Base URL: $N8N_INSTANCE_URL/api/v1
+Header: X-N8N-API-KEY: <jwt-token>
+Base URL: https://<instance>.app.n8n.cloud/api/v1
 ```
 
 ### Key Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/workflows` | List all workflows |
-| `POST` | `/workflows` | Create workflow |
 | `GET` | `/workflows/{id}` | Get workflow |
-| `PUT` | `/workflows/{id}` | Update workflow |
-| `DELETE` | `/workflows/{id}` | Delete workflow |
-| `POST` | `/workflows/{id}/activate` | Activate |
-| `POST` | `/workflows/{id}/deactivate` | Deactivate |
-| `GET` | `/executions?status=error` | Get failed runs |
-| `GET` | `/executions/{id}?includeData=true` | Get execution details |
+| `PUT` | `/workflows/{id}` | Update workflow (only send: name, nodes, connections, settings) |
+| `POST` | `/workflows/{id}/activate` | Activate workflow |
+| `GET` | `/executions?status=error` | Get failed executions |
+| `GET` | `/executions/{id}?includeData=true` | Get execution details with error info |
 
-### Create/Update Workflow - Required Fields Only
+---
+
+## Expression Syntax
+
+**All dynamic content needs `{{}}`**
+
+### Core Variables
+| Variable | What it does | Example |
+|----------|--------------|---------|
+| `$json` | Current node output | `{{ $json.email }}` |
+| `$node` | Reference other nodes | `{{ $node["HTTP Request"].json.data }}` |
+| `$now` | Current timestamp | `{{ $now.format('yyyy-MM-dd') }}` |
+| `$env` | Environment variables | `{{ $env.API_KEY }}` |
+| `$input` | All input items | `{{ $input.all() }}` |
+| `$itemIndex` | Current item index | `{{ $itemIndex }}` |
+
+### CRITICAL: Webhook Body Gotcha
+Webhook data lives under `.body`, NOT root level. This causes 80% of webhook errors.
+
+| Wrong | Right |
+|-------|-------|
+| `{{ $json.email }}` | `{{ $json.body.email }}` |
+| `{{ $json.name }}` | `{{ $json.body.name }}` |
+| `{{ $json.data }}` | `{{ $json.body.data }}` |
+
+### Syntax Rules
+1. Always wrap in `{{ }}` for dynamic content
+2. Use bracket notation for spaces: `{{ $json["First Name"] }}`
+3. Node names are case-sensitive
+4. Never nest braces: `{{ {{ bad }} }}`
+5. No expressions in: Code nodes, webhook paths, credentials
+
+### Common Patterns
+```javascript
+// Conditional
+{{ $json.status === 'active' ? 'Yes' : 'No' }}
+
+// Default value
+{{ $json.name || 'Unknown' }}
+
+// Array access
+{{ $json.items[0].title }}
+
+// Date formatting
+{{ $now.format('dd/MM/yyyy HH:mm') }}
+
+// String methods
+{{ $json.email.toLowerCase() }}
+```
+
+---
+
+## 5 Workflow Patterns
+
+Choose the right architecture for your use case:
+
+| Pattern | Use When | % of workflows |
+|---------|----------|----------------|
+| **Webhook Processing** | External triggers (forms, APIs calling you) | 35% |
+| **HTTP API Integration** | Fetch/push data to external services | 45% |
+| **Database Operations** | Read/write to databases, sync data | 28% |
+| **AI Agent Workflows** | AI with tools, memory, decisions | Growing |
+| **Scheduled Tasks** | Recurring automation (daily, hourly) | 28% |
+
+### Pattern 1: Webhook Processing
+```
+Webhook → Validate → Process → Respond
+```
+- Always validate incoming data
+- Return response quickly (avoid timeouts)
+- Use "Respond to Webhook" node for custom responses
+
+### Pattern 2: HTTP API Integration
+```
+Trigger → HTTP Request → Transform → Output
+```
+- Handle pagination for large datasets
+- Add retry logic for flaky APIs
+- Cache responses when possible
+
+### Pattern 3: Database Operations
+```
+Trigger → Query → Transform → Write/Update
+```
+- Use transactions for critical writes
+- Batch operations for performance
+- Always handle "no results" case
+
+### Pattern 4: AI Agent Workflows
+```
+Input → AI Agent → Tools → Memory → Output
+```
+- Define clear system prompts
+- Limit tool access to what's needed
+- Add human-in-the-loop for critical decisions
+
+### Pattern 5: Scheduled Tasks
+```
+Schedule Trigger → Fetch → Process → Notify
+```
+- Use appropriate intervals (don't over-poll)
+- Handle "nothing new" gracefully
+- Add deduplication logic
+
+---
+
+## Common Errors & Fixes
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `No prompt specified` | AI Agent missing prompt config | Add `promptType: "define"` and `text: "={{ $json.field }}"` |
+| `Custom email config is not valid JSON` | IMAP customEmailConfig syntax | Remove custom config, filter in Code node instead |
+| `The resource you are requesting could not be found - model: xxx` | Model ID not recognized | Use specific ID like `claude-3-haiku-20240307`, NOT `latest` |
+| `Authorization failed - invalid x-api-key` | Anthropic API key invalid | Update API key in n8n Credentials |
+| `Your credit balance is too low` | Anthropic needs credits | Add credits at console.anthropic.com |
+| `request/body must NOT have additional properties` | Extra fields in API PUT | Only send: name, nodes, connections, settings |
+| `Cannot read property Symbol(Symbol.iterator)` | Malformed connections JSON | Use `{ "NodeName": { "main": [[{...}]] } }` format |
+
+---
+
+## Node Configurations
+
+### AI Agent Node (LangChain)
 ```json
 {
-  "name": "Workflow Name",
-  "nodes": [...],
-  "connections": {...},
-  "settings": { "executionOrder": "v1" }
+  "parameters": {
+    "promptType": "define",
+    "text": "={{ $json.prompt }}",
+    "options": {
+      "systemMessage": "Your system prompt..."
+    }
+  },
+  "type": "@n8n/n8n-nodes-langchain.agent",
+  "typeVersion": 1.7
 }
 ```
-**Do NOT send:** id, active, createdAt, updatedAt, staticData, tags
+
+### Anthropic Chat Model
+```json
+{
+  "parameters": {
+    "model": {
+      "__rl": true,
+      "mode": "id",
+      "value": "claude-3-haiku-20240307"
+    },
+    "options": {
+      "maxTokensToSample": 2048,
+      "temperature": 0.7
+    }
+  },
+  "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+  "typeVersion": 1.3
+}
+```
+
+**Working model IDs:**
+- `claude-3-haiku-20240307` - Fast, cheap
+- `claude-3-sonnet-20240229` - Balanced
+- `claude-3-opus-20240229` - Best quality
+- **Note:** `claude-3-5-sonnet-latest` may NOT work
+
+### IMAP Node
+```json
+{
+  "parameters": { "options": {} },
+  "type": "n8n-nodes-base.emailReadImap",
+  "typeVersion": 2.1
+}
+```
+**Warning:** `customEmailConfig` is unreliable. Filter in Code node instead.
+
+### Telegram Node
+```json
+{
+  "parameters": {
+    "chatId": "123456789",
+    "text": "={{ $json.output }}",
+    "additionalFields": { "parse_mode": "Markdown" }
+  },
+  "type": "n8n-nodes-base.telegram",
+  "typeVersion": 1.2
+}
+```
+
+### Schedule Trigger
+```json
+{
+  "parameters": {
+    "rule": { "interval": [{"triggerAtHour": 7}] }
+  },
+  "type": "n8n-nodes-base.scheduleTrigger",
+  "typeVersion": 1.2
+}
+```
+
+---
+
+## Code Node Patterns
+
+### 24-Hour Deduplication
+```javascript
+const HOURS_BACK = 24;
+const cutoffTime = new Date(Date.now() - HOURS_BACK * 60 * 60 * 1000);
+
+for (const item of $input.all()) {
+  const pubDate = new Date(data.pubDate || data.isoDate || 0);
+  if (pubDate > cutoffTime) {
+    // Include item
+  }
+}
+```
+
+### Limit Items (Cost Control)
+```javascript
+const MAX_ITEMS = 15;
+if (items.length < MAX_ITEMS) {
+  items.push(newItem);
+}
+```
+
+### Email Filtering by Sender
+```javascript
+if ((data.subject || data.textPlain) &&
+    data.from?.includes('sender@example.com')) {
+  // Process email
+}
+```
+
+### Token Saving (Nothing New)
+```javascript
+const prompt = (items.length === 0)
+  ? 'No news. Reply: _nothing new'
+  : `Full prompt with ${items.length} items...`;
+```
 
 ---
 
 ## Workflow JSON Structure
-
-### Node Template
-```json
-{
-  "id": "unique-uuid",
-  "name": "Descriptive Name",
-  "type": "n8n-nodes-base.nodeType",
-  "typeVersion": 1,
-  "position": [x, y],
-  "parameters": {...}
-}
-```
 
 ### Connections Format
 ```json
@@ -87,269 +276,78 @@ Base URL: $N8N_INSTANCE_URL/api/v1
 ```
 - Keys are node **names** (not IDs)
 - Double-nested arrays: `[[{...}]]`
-- Empty workflow: `"connections": {}`
+- Empty: `"connections": {}`
 
-### Position Guidelines
-- Start trigger at [100, 100]
-- Horizontal spacing: 200px between nodes
-- Vertical spacing: 150px for parallel branches
-
----
-
-## Common Node Types
-
-### Triggers
-| Type | Node Type | Use Case |
-|------|-----------|----------|
-| Manual | `n8n-nodes-base.manualTrigger` | Testing |
-| Schedule | `n8n-nodes-base.scheduleTrigger` | Cron jobs |
-| Webhook | `n8n-nodes-base.webhook` | External triggers |
-| Email | `n8n-nodes-base.emailReadImap` | Email monitoring |
-
-### Actions
-| Type | Node Type | Use Case |
-|------|-----------|----------|
-| HTTP | `n8n-nodes-base.httpRequest` | API calls |
-| Code | `n8n-nodes-base.code` | Custom JS |
-| Set | `n8n-nodes-base.set` | Set values |
-| IF | `n8n-nodes-base.if` | Conditionals |
-| Telegram | `n8n-nodes-base.telegram` | Messaging |
-| Gmail | `n8n-nodes-base.gmail` | Email |
-
-### AI/LangChain
-| Type | Node Type |
-|------|-----------|
-| AI Agent | `@n8n/n8n-nodes-langchain.agent` |
-| Claude | `@n8n/n8n-nodes-langchain.lmChatAnthropic` |
-| OpenAI | `@n8n/n8n-nodes-langchain.lmChatOpenAi` |
-
----
-
-## Common Errors & Fixes
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `No prompt specified` | AI Agent missing prompt | Add `promptType: "define"` and `text` parameter |
-| `The resource you are requesting could not be found` | Invalid model ID | Use exact ID like `claude-3-haiku-20240307` |
-| `Authorization failed` | Bad API key | Update credentials in n8n |
-| `request/body must NOT have additional properties` | Extra fields in PUT | Only send: name, nodes, connections, settings |
-| `Cannot read property Symbol(Symbol.iterator)` | Bad connections JSON | Use `{ "Name": { "main": [[{...}]] } }` |
-| `Unauthorized` | Expired/wrong API key | Check N8N_API_KEY env var |
-
----
-
-## Design Workflow
-
-When user describes what they want:
-
-1. **Clarify requirements:**
-   - What triggers the workflow?
-   - What data is involved?
-   - What should happen step by step?
-   - What's the output?
-
-2. **Propose design:**
-   ```
-   ## Workflow: "[Name]"
-
-   **Trigger**: [What starts it]
-   **Steps**:
-   1. [Step description]
-   2. [Step description]
-   **Output**: [Final result]
-   ```
-
-3. **Get approval before creating**
-
----
-
-## Debug Workflow
-
-When user reports errors:
-
-1. **Get error details:**
-   ```bash
-   curl -X GET "$N8N_INSTANCE_URL/api/v1/executions?status=error&limit=5" \
-     -H "X-N8N-API-KEY: $N8N_API_KEY"
-   ```
-
-2. **Get specific execution:**
-   ```bash
-   curl -X GET "$N8N_INSTANCE_URL/api/v1/executions/{id}?includeData=true" \
-     -H "X-N8N-API-KEY: $N8N_API_KEY"
-   ```
-
-3. **Find error in:** `response.data.resultData.error.message`
-
-4. **Explain in plain English** - translate technical errors:
-   - `401 Unauthorized` → "Your credential expired, reconnect in n8n"
-   - `ENOTFOUND` → "Can't reach that URL, check if it's correct"
-   - `timeout` → "The service took too long, may be overloaded"
-
----
-
-## Node Configurations
-
-### Schedule Trigger (Daily at 7 AM)
+### Settings
 ```json
 {
-  "parameters": {
-    "rule": { "interval": [{ "triggerAtHour": 7 }] }
-  },
-  "type": "n8n-nodes-base.scheduleTrigger",
-  "typeVersion": 1.2
-}
-```
-
-### Webhook
-```json
-{
-  "parameters": {
-    "path": "my-webhook",
-    "httpMethod": "POST",
-    "responseMode": "onReceived"
-  },
-  "type": "n8n-nodes-base.webhook",
-  "typeVersion": 1
-}
-```
-
-### AI Agent (Claude)
-```json
-{
-  "parameters": {
-    "promptType": "define",
-    "text": "={{ $json.prompt }}",
-    "options": { "systemMessage": "You are..." }
-  },
-  "type": "@n8n/n8n-nodes-langchain.agent",
-  "typeVersion": 1.7
-}
-```
-
-### Claude Chat Model
-```json
-{
-  "parameters": {
-    "model": {
-      "__rl": true,
-      "mode": "id",
-      "value": "claude-3-haiku-20240307"
-    },
-    "options": { "maxTokensToSample": 2048 }
-  },
-  "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-  "typeVersion": 1.3
-}
-```
-
-**Valid Claude model IDs:**
-- `claude-3-haiku-20240307` - Fast, cheap
-- `claude-3-sonnet-20240229` - Balanced
-- `claude-3-opus-20240229` - Best quality
-
-### Telegram
-```json
-{
-  "parameters": {
-    "chatId": "123456789",
-    "text": "={{ $json.message }}",
-    "additionalFields": { "parse_mode": "Markdown" }
-  },
-  "type": "n8n-nodes-base.telegram",
-  "typeVersion": 1.2
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "timezone": "Europe/Berlin"
+  }
 }
 ```
 
 ---
 
-## Code Node Patterns
+## Debugging Workflow
 
-### Filter by Time (Last 24h)
-```javascript
-const HOURS = 24;
-const cutoff = new Date(Date.now() - HOURS * 60 * 60 * 1000);
-
-return $input.all().filter(item => {
-  const date = new Date(item.json.date);
-  return date > cutoff;
-});
+1. **Check errors via API:**
+```bash
+curl -X GET ".../api/v1/executions?status=error" -H "X-N8N-API-KEY: ..."
 ```
 
-### Limit Items
-```javascript
-const MAX = 10;
-return $input.all().slice(0, MAX);
+2. **Get error details:**
+```bash
+curl -X GET ".../api/v1/executions/{id}?includeData=true" -H "X-N8N-API-KEY: ..."
 ```
 
-### Handle Empty Input
-```javascript
-if ($input.all().length === 0) {
-  return [{ json: { message: "No data to process" } }];
-}
-// Continue processing...
+3. **Error location:** `response.data.resultData.error.message`
+
+4. **Push fix:**
+```bash
+curl -X PUT ".../api/v1/workflows/{id}" -H "X-N8N-API-KEY: ..." -d @workflow.json
 ```
 
 ---
 
 ## Best Practices
 
-### Naming
-- Workflows: `[Status] Source > Destination: Task`
-- Example: `[Prod] RSS > Telegram: Daily Digest`
-- Status: `[InDev]`, `[InTesting]`, `[Prod]`, `[Offline]`
+### Naming Conventions
+- Workflows: `[Prod] Source > Destination: Task`
+- Nodes: Describe action, not node type
+- Status prefixes: `[InDev]`, `[InTesting]`, `[Prod]`, `[Offline]`
 
 ### Error Handling
-1. Create error workflow with Error Trigger node
-2. Set error workflow in main workflow settings
-3. Enable retries on HTTP nodes (3-5 attempts)
+1. Create dedicated error workflow with Error Trigger
+2. Assign error workflow in main workflow settings
+3. Enable retries on external API nodes (3-5 attempts)
 
 ### Performance
-- Filter data early
+- Filter data early to reduce volume
 - Use `Split In Batches` for large datasets
 - Prefer built-in nodes over Code node
 - Cache expensive API calls
 
 ### Security
-- Use n8n credential storage (never hardcode)
+- Use n8n credential storage (never hardcode keys)
 - Enable webhook authentication
-- Rotate API keys periodically
+- Set credential expiration dates
+- Rotate keys periodically
 
 ---
 
-## Additional Resources
-
-For detailed information, see the `/docs` folder:
-- `n8n-api-specification.md` - Complete API reference
-- `n8n-workflow-best-practices.md` - Design patterns
-- `n8n-workflows-collection.md` - Example repositories
-- `testing-infrastructure-specification.md` - Testing setup
+## Cost Estimates (Claude Haiku)
+- Per run (15 items): ~$0.005
+- Daily for 1 month: ~$0.15
+- With "nothing new" days: even less
 
 ---
 
-## Example: Create Simple Workflow
-
-```bash
-curl -X POST "$N8N_INSTANCE_URL/api/v1/workflows" \
-  -H "X-N8N-API-KEY: $N8N_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "[InDev] Test Workflow",
-    "nodes": [
-      {
-        "id": "1",
-        "name": "Manual Trigger",
-        "type": "n8n-nodes-base.manualTrigger",
-        "typeVersion": 1,
-        "position": [100, 100],
-        "parameters": {}
-      }
-    ],
-    "connections": {},
-    "settings": { "executionOrder": "v1" }
-  }'
-```
-
----
-
-*Skill for Claude Code - n8n Workflow Assistant*
+## Sources
+- [n8n REST API Docs](https://docs.n8n.io/api/)
+- [n8n Error Handling](https://docs.n8n.io/flow-logic/error-handling/)
+- [n8n LangChain Integration](https://docs.n8n.io/integrations/builtin/cluster-nodes/)
+- Learned from debugging eToro ETF Digest workflow
