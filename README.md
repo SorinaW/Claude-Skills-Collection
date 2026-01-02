@@ -18,6 +18,7 @@ Claude will read the README and guide you through installation.
 
 | Skill | Branch | Description |
 |-------|--------|-------------|
+| **Anthropic Official Skills** | [`anthropic-skills`](../../tree/anthropic-skills) | All 16 official skills from [github.com/anthropics/skills](https://github.com/anthropics/skills). PDF, DOCX, XLSX, PPTX, generative art, webapp testing, and more. |
 | **n8n Workflows** | [`n8n-workflows`](../../tree/n8n-workflows) | Build n8n automations from natural language. Design, create, debug, and deploy workflows via API. |
 | **Anti AI Slop** | [`sorina-anti-ai-slop`](../../tree/sorina-anti-ai-slop) | Rewrite content in authentic voice - direct, funny, opinionated. No corporate buzzwords. |
 
